@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nifemiii · video gallery</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #f0f0f0;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* elegant header */
+        .site-header {
+            padding: 3rem 2rem 1rem;
+            text-align: center;
+        }
+
+        .site-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 12vw, 5rem);
+            font-weight: 700;
+            font-style: italic;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, #c0c0c0 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(255,255,255,0.15);
+            margin-bottom: 0.5rem;
+        }
+
+        .subhead {
+            color: #a0a0a0;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            word-spacing: 2px;
+            font-weight: 300;
+        }
+
+        /* main gallery */
+        .gallery {
+            max-width: 1300px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            width: 100%;
+        }
+
+        /* video card */
+        .video-card {
+            background: #141414;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.8);
+            transition: transform 0.3s ease, box-shadow 0.4s ease;
+            cursor: pointer;
+            border: 1px solid #2a2a2a;
+            aspect-ratio: 16 / 9;
+            position: relative;
+        }
+
+        .video-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 30px 50px -15px #000;
+            border-color: #444;
+        }
+
+        .card-preview {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-color: #1f1f1f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+            position: relative;
+        }
+
+        /* fallback gradient + play icon */
+        .card-preview i {
+            font-size: 3.5rem;
+            color: rgba(255,255,255,0.75);
+            background: rgba(0,0,0,0.5);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .video-card:hover .card-preview i {
+            color: white;
+            background: rgba(180, 140, 255, 0.7);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px #b48cff;
+        }
+
+        /* lightbox modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.95);
+            backdrop-filter: blur(12px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            position: relative;
+            width: min(90%, 1000px);
+            background: #111;
+            border-radius: 32px;
+            padding: 1rem;
+            box-shadow: 0 40px 80px #000;
+            border: 1px solid #333;
+        }
+
+        .modal-video-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 */
+        }
+
+        #modal-video {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border: none;
+            border-radius: 20px;
+            background: #000;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: -20px; right: -20px;
+            background: #222;
+            color: white;
+            font-size: 1.8rem;
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid #555;
+            transition: all 0.15s;
+            z-index: 1010;
+        }
+
+        .close-modal:hover {
+            background: #ff4d4d;
+            transform: rotate(90deg);
+            border-color: #ff9999;
+        }
+
+        /* footer */
+        .site-footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.85rem;
+            color: #555;
+            letter-spacing: 1px;
+        }
+
+        /* responsive tweaks */
+        @media (max-width: 600px) {
+            .site-header { padding: 2rem 1rem 0.5rem; }
+            .gallery { padding: 0 1rem; }
+            .video-grid { gap: 1.2rem; }
+            .close-modal { top: -15px; right: -15px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <h1 class="site-title">nifemiii</h1>
+        <div class="subhead">cinematic moments</div>
+    </header>
+
+    <main class="gallery">
+        <div class="video-grid">
+            <!-- Video Card 1 -->
+            <div class="video-card" data-video-src="images/WhatsApp Video 2026-02-18 at 2.40.55 PM.mp4" data-poster-src="poster1.jpg">
+                <div class="card-preview" style="background-image: url('poster1.jpg');">
+                    <i class="fas fa-play"></i>
+                </div>
+            </div>
+            <!-- Video Card 2 -->
+            <div class="video-card" data-video-src="images/WhatsApp Video 2026-02-20 at 5.41.17 PM.mp4" data-poster-src="poster2.jpg">
+                <div class="card-preview" style="background-image: url('poster2.jpg');">
+                    <i class="fas fa-play"></i>
+                </div>
+            </div>
+            <!-- Video Card 3 -->
+            <div class="video-card" data-video-src="images/WhatsApp Video 2026-02-28 at 2.08.45 AM.mp4" data-poster-src="poster3.jpg">
+                <div class="card-preview" style="background-image: url('poster3.jpg');">
+                    <i class="fas fa-play"></i>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Lightbox Modal -->
+    <div class="modal" id="videoModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModalBtn"><i class="fas fa-times"></i></span>
+            <div class="modal-video-container">
+                <video id="modal-video" controls preload="metadata" playsinline></video>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        ✦ nifemiii · all rights reserved ✦
+    </footer>
+
+    <script>
+        (function() {
+            // Get elements
+            const cards = document.querySelectorAll('.video-card');
+            const modal = document.getElementById('videoModal');
+            const modalVideo = document.getElementById('modal-video');
+            const closeBtn = document.getElementById('closeModalBtn');
+
+            // Function to open modal with the clicked video
+            function openModal(videoSrc, posterSrc) {
+                modalVideo.src = videoSrc;               // set video source
+                modalVideo.poster = posterSrc;            // set poster image
+                modal.classList.add('show');               // show modal
+                // optional: attempt to autoplay (may be blocked by browser)
+                // but we keep it simple: user presses play
+            }
+
+            // Function to close modal and stop video
+            function closeModal() {
+                modal.classList.remove('show');
+                modalVideo.pause();                         // stop playback
+                modalVideo.src = '';                         // unload video (optional)
+            }
+
+            // Add click event to each video card
+            cards.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    const videoSrc = this.dataset.videoSrc;
+                    const posterSrc = this.dataset.posterSrc;
+                    // If no custom poster, let the video element use its own poster or fallback
+                    openModal(videoSrc, posterSrc);
+                });
+            });
+
+            // Close modal when clicking the close button
+            closeBtn.addEventListener('click', closeModal);
+
+            // Close modal if user clicks outside the modal content
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // Also close on Esc key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modal.classList.contains('show')) {
+                    closeModal();
+                }
+            });
+
+            // Fallback: if poster images are missing, the card-preview will show gradient + icon
+            // We can optionally set a default gradient background inline
+            cards.forEach(card => {
+                const preview = card.querySelector('.card-preview');
+                const bgImage = preview.style.backgroundImage;
+                // If no background image (empty or 'none'), we set a nice gradient
+                if (!bgImage || bgImage === 'none' || bgImage.includes('undefined')) {
+                    preview.style.background = 'linear-gradient(145deg, #2a2a2a, #0f0f0f)';
+                }
+            });
+        })();
+    </script>
+
+    <!-- small extra: ensure poster paths are correct; you can replace the placeholder .jpg/.mp4 names -->
+    <!-- if you don't have posters, the gradient + play icon will show automatically -->
+</body>
+</html>
